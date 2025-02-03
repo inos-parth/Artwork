@@ -68,17 +68,19 @@
                 }
 
                 let data = await response.json();
+
                 console.log("GitHub API Response:", data); // Debugging log
 
                 if (!Array.isArray(data) || data.length === 0) {
                     throw new Error("No images found in the repository.");
                 }
 
+                // Extract only image URLs (ignores non-image files like PDFs)
                 let imageUrls = data
-                    .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Only images
-                    .map(file => `https://raw.githubusercontent.com/${githubUsername}/${repoName}/${branch}/${file.name}`);
+                    .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Select only images
+                    .map(file => file.download_url); // Use download_url to get raw image links
 
-                console.log("Extracted Image URLs:", imageUrls);
+                console.log("Extracted Image URLs:", imageUrls); // Debugging log
 
                 if (imageUrls.length === 0) {
                     throw new Error("No valid image files found.");
@@ -118,7 +120,7 @@
                 imageElements[currentIndex].classList.remove("active");  // Hide current image
                 currentIndex = (currentIndex + 1) % imageElements.length;  // Move to next image
                 imageElements[currentIndex].classList.add("active");  // Show next image
-            }, 2000); // Change every 2 seconds
+            }, 4000); // Change every 4 seconds
         }
 
         fetchImages();
