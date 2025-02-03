@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Art Slideshow</title>
+    <style>
+        body {
+            background-color: white;
+            color: black;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #slideshow-container {
+            width: 80vw;
+            height: 80vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            position: absolute;
+            object-fit: contain;
+            display: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        img.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Art Slideshow</h1>
+    <div id="slideshow-container"></div>
+
+    <script>
+        const githubUsername = "inos-parth";  // Replace with your GitHub username
+        const repoName = "Artwork";  // Replace with your GitHub repository name
+        const branch = "main";  // Change if using a different branch
+        const githubApiUrl = `https://api.github.com/repos/${githubUsername}/${repoName}/contents/`;
+
+        async function fetchImages() {
+            try {
+                let response = await fetch(githubApiUrl);
+                let data = await response.json();
+
+                // Filter for only image files (jpg, jpeg, png, gif)
+                let imageUrls = data
+                    .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name))
+                    .map(file => `https://raw.githubusercontent.com/${githubUsername}/${repoName}/${branch}/${file.name}`);
+
+                // Shuffle images randomly
+                imageUrls.sort(() => Math.random() - 0.5);
+
+                displaySlideshow(imageUrls);
+            } catch (error) {
+                console.error("Error fetching images:", error);
+            }
+        }
+
+        function displaySlideshow(images) {
+            const container = document.getElementById("slideshow-container");
+
+            // Clear previous images
+            container.innerHTML = "";
+
+            // Create image elements
+            images.forEach((url, index) => {
+                let img = document.createElement("img");
+                img.src = url;
+                img.classList.add(index === 0 ? "active" : "");  // Show only the first image initially
+                container.appendChild(img);
+            });
+
+            // Slideshow logic
+            let currentIndex = 0;
+            setInterval(() => {
+                let images = document.querySelectorAll("#slideshow-container img");
+                images[currentIndex].classList.remove("active");  // Hide current image
+                currentIndex = (currentIndex + 1) % images.length;  // Move to next image
+                images[currentIndex].classList.add("active");  // Show next image
+            }, 4000);  // Change every 4 seconds
+        }
+
+        // Load images dynamically
+        fetchImages();
+    </script>
+</body>
+</html>
