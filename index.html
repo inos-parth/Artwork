@@ -40,12 +40,11 @@
             max-height: 100%;
             position: absolute;
             object-fit: contain;
-            display: none;
+            opacity: 0;
             transition: opacity 1s ease-in-out;
         }
 
         img.active {
-            display: block;
             opacity: 1;
         }
     </style>
@@ -65,10 +64,22 @@
                 let response = await fetch(githubApiUrl);
                 let data = await response.json();
 
+                console.log("GitHub API Response:", data); // Debugging log
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error("No images found or incorrect API response.");
+                }
+
                 // Filter for only image files (jpg, jpeg, png, gif)
                 let imageUrls = data
                     .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name))
                     .map(file => `https://raw.githubusercontent.com/${githubUsername}/${repoName}/${branch}/${file.name}`);
+
+                console.log("Extracted Image URLs:", imageUrls); // Debugging log
+
+                if (imageUrls.length === 0) {
+                    throw new Error("No valid image files found.");
+                }
 
                 // Shuffle images randomly
                 imageUrls.sort(() => Math.random() - 0.5);
@@ -76,31 +87,39 @@
                 displaySlideshow(imageUrls);
             } catch (error) {
                 console.error("Error fetching images:", error);
+                document.getElementById("slideshow-container").innerHTML = 
+                    "<p style='color:red;'>Failed to load images. Check console.</p>";
             }
         }
 
         function displaySlideshow(images) {
             const container = document.getElementById("slideshow-container");
-
-            // Clear previous images
-            container.innerHTML = "";
+            container.innerHTML = ""; // Clear previous images
 
             // Create image elements
             images.forEach((url, index) => {
                 let img = document.createElement("img");
                 img.src = url;
-                img.classList.add(index === 0 ? "active" : "");  // Show only the first image initially
+                img.classList.add(index === 0 ? "active" : "");
                 container.appendChild(img);
             });
 
-            // Slideshow logic
             let currentIndex = 0;
+            let imageElements = document.querySelectorAll("#slideshow-container img");
+
+            if (imageElements.length === 0) {
+                console.error("Slideshow Error: No images to display.");
+                return;
+            }
+
+            console.log("Total images loaded:", imageElements.length);
+
+            // Slideshow function
             setInterval(() => {
-                let images = document.querySelectorAll("#slideshow-container img");
-                images[currentIndex].classList.remove("active");  // Hide current image
-                currentIndex = (currentIndex + 1) % images.length;  // Move to next image
-                images[currentIndex].classList.add("active");  // Show next image
-            }, 4000);  // Change every 4 seconds
+                imageElements[currentIndex].classList.remove("active");  // Hide current image
+                currentIndex = (currentIndex + 1) % imageElements.length;  // Move to next image
+                imageElements[currentIndex].classList.add("active");  // Show next image
+            }, 4000); // Change every 4 seconds
         }
 
         // Load images dynamically
